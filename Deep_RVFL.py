@@ -2,7 +2,7 @@
 #@Time : 2021/3/27 20:40
 #@Author : HUANG XUYANG
 #@Email : xhuang032@e.ntu.edu.sg
-#@File : RVFL.py
+#@File : Deep_RVFL.py
 #@Software: PyCharm
 
 import numpy as np
