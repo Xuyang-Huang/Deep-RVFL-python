@@ -9,10 +9,10 @@ import numpy as np
 from sklearn.datasets import load_digits
 
 
-num_nodes = 40  # Number of enhancement nodes.
-regular_para = 0.02  # Regularization parameter.
+num_nodes = 50  # Number of enhancement nodes.
+regular_para = 0.01  # Regularization parameter.
 random_range = [-1, 1]  # Range of random weights.
-num_layer = 5  # Number of hidden layers
+num_layer = 6  # Number of hidden layers
 
 
 class DeepRVFL:
@@ -54,12 +54,12 @@ class DeepRVFL:
         n_sample = len(data)
         n_feature = len(data[0])
         d = data
-
+        h = data
         for i in range(self.n_layer):
-            self.random_weights.append(self.get_random_vectors(n_feature, self.n_nodes, self.random_range))
+            self.random_weights.append(self.get_random_vectors(len(h[0]), self.n_nodes, self.random_range))
             self.random_bias.append(self.get_random_vectors(1, self.n_nodes, self.random_range))
-            h = self.activation_function(np.dot(data, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
-                                                                                       self.random_bias[i]))
+            h = self.activation_function(np.dot(h, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
+                                                                                    self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
 
         y = self.one_hot(label, num_class)
@@ -79,11 +79,10 @@ class DeepRVFL:
         n_sample = len(data)
         n_feature = len(data[0])
         d = data
+        h = data
         for i in range(self.n_layer):
-            self.random_weights.append(self.get_random_vectors(n_feature, self.n_nodes, self.random_range))
-            self.random_bias.append(self.get_random_vectors(1, self.n_nodes, self.random_range))
-            h = self.activation_function(np.dot(data, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
-                                                                                       self.random_bias[i]))
+            h = self.activation_function(np.dot(h, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
+                                                                                    self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
         result = np.dot(d, self.beta)
         if not output_prob:
@@ -99,13 +98,12 @@ class DeepRVFL:
         """
         data = self.normalize(data)  # Normalization data
         d = data
+        h = data
         n_sample = len(data)
         n_feature = len(data[0])
         for i in range(self.n_layer):
-            self.random_weights.append(self.get_random_vectors(n_feature, self.n_nodes, self.random_range))
-            self.random_bias.append(self.get_random_vectors(1, self.n_nodes, self.random_range))
-            h = self.activation_function(np.dot(data, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
-                                                                                       self.random_bias[i]))
+            h = self.activation_function(np.dot(h, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
+                                                                                    self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
         result = np.dot(d, self.beta)
         result = np.argmax(result, axis=1)
