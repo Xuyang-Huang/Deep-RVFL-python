@@ -9,11 +9,11 @@ import numpy as np
 import sklearn.datasets as sk_dataset
 
 
-num_nodes = 50  # Number of enhancement nodes.
-regular_para = 0.01  # Regularization parameter.
+num_nodes = 2  # Number of enhancement nodes.
+regular_para = 1  # Regularization parameter.
 weight_random_range = [-1, 1]  # Range of random weights.
-bias_random_range = [-1, 1]  # Range of random weights.
-num_layer = 4  # Number of hidden layers
+bias_random_range = [0, 1]  # Range of random weights.
+num_layer = 2  # Number of hidden layers
 
 
 class DeepRVFL:
@@ -73,9 +73,10 @@ class DeepRVFL:
                                                                                     self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
 
+        d = np.concatenate([d, np.ones_like(d[:, 0:1])], axis=1)
         y = self.one_hot(label, n_class)
         if n_sample > (self.n_nodes * self.n_layer + n_feature):
-            self.beta = np.linalg.inv((self.lam * np.identity(n_feature + self.n_nodes * self.n_layer) + np.dot(d.T, d))).dot(d.T).dot(y)
+            self.beta = np.linalg.inv((self.lam * np.identity(d.shape[1]) + np.dot(d.T, d))).dot(d.T).dot(y)
         else:
             self.beta = d.T.dot(np.linalg.inv(self.lam * np.identity(n_sample) + np.dot(d, d.T))).dot(y)
 
@@ -94,7 +95,8 @@ class DeepRVFL:
             h = self.activation_function(np.dot(h, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
                                                                                     self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
-        result = np.dot(d, self.beta)
+        d = np.concatenate([d, np.ones_like(d[:, 0:1])], axis=1)
+        result = self.softmax(np.dot(d, self.beta))
         if not output_prob:
             result = np.argmax(result, axis=1)
         return result
@@ -119,6 +121,7 @@ class DeepRVFL:
             h = self.activation_function(np.dot(h, self.random_weights[i]) + np.dot(np.ones([n_sample, 1]),
                                                                                     self.random_bias[i]))
             d = np.concatenate([h, d], axis=1)
+        d = np.concatenate([d, np.ones_like(d[:, 0:1])], axis=1)
         result = np.dot(d, self.beta)
         result = np.argmax(result, axis=1)
         acc = np.sum(np.equal(result, label))/len(label)
@@ -137,16 +140,19 @@ class DeepRVFL:
     def standardize(self, x, index):
         if self.same_feature is True:
             if self.data_std[index] is None:
-                self.data_std[index] = np.std(x)
+                self.data_std[index] = np.maximum(np.std(x), 1/np.sqrt(len(x)))
             if self.data_mean[index] is None:
                 self.data_mean[index] = np.mean(x)
             return (x - self.data_mean[index]) / self.data_std[index]
         else:
             if self.data_std[index] is None:
-                self.data_std[index] = np.std(x, axis=0)
+                self.data_std[index] = np.maximum(np.std(x, axis=0), 1/np.sqrt(len(x)))
             if self.data_mean[index] is None:
                 self.data_mean[index] = np.mean(x, axis=0)
             return (x - self.data_mean[index]) / self.data_std[index]
+
+    def softmax(self, x):
+        return np.exp(x) / np.repeat((np.sum(np.exp(x), axis=1))[:, np.newaxis], len(x[0]), axis=1)
 
 
 class Activation:
@@ -173,7 +179,7 @@ class Activation:
 
 
 def prepare_data(proportion):
-    dataset = sk_dataset.load_wine()
+    dataset = sk_dataset.load_breast_cancer()
     label = dataset['target']
     data = dataset['data']
     n_class = len(dataset['target_names'])
@@ -195,5 +201,6 @@ if __name__ == '__main__':
     train, val, num_class = prepare_data(0.9)
     deep_rvfl = DeepRVFL(num_nodes, regular_para, weight_random_range, bias_random_range, 'relu', num_layer, False)
     deep_rvfl.train(train[0], train[1], num_class)
-    prediction = deep_rvfl.predict(val[0], output_prob=False)
+    prediction = deep_rvfl.predict(val[0], output_prob=True)
     accuracy = deep_rvfl.eval(val[0], val[1])
+    print(accuracy)
