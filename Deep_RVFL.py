@@ -234,8 +234,9 @@ if __name__ == '__main__':
 
     # Classification
     train, val, num_class = prepare_data_classify(0.8)
-    deep_rvfl = DeepRVFL(num_nodes, regular_para, weight_random_range, bias_random_range, 'relu', num_layer, False,
-                         'classification')
+    deep_rvfl = DeepRVFL(n_nodes=num_nodes, lam=regular_para, w_random_vec_range=weight_random_range,
+                         b_random_vec_range=bias_random_range, activation='relu', n_layer=num_layer, same_feature=False,
+                         task_type='classification')
     deep_rvfl.train(train[0], train[1], num_class)
     prediction, proba = deep_rvfl.predict(val[0])
     accuracy = deep_rvfl.eval(val[0], val[1])
@@ -249,8 +250,9 @@ if __name__ == '__main__':
     num_layer = 2  # Number of hidden layers
 
     train, val = prepare_data_regression(0.8)
-    deep_rvfl = DeepRVFL(num_nodes, regular_para, weight_random_range, bias_random_range, 'relu', num_layer, False,
-                         'regression')
+    deep_rvfl = DeepRVFL(n_nodes=num_nodes, lam=regular_para, w_random_vec_range=weight_random_range,
+                         b_random_vec_range=bias_random_range, activation='relu', n_layer=num_layer, same_feature=False,
+                         task_type='regression')
     deep_rvfl.train(train[0], train[1], 0)
     prediction = deep_rvfl.predict(val[0])
     mae = deep_rvfl.eval(val[0], val[1])
