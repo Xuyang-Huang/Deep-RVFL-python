@@ -135,54 +135,64 @@ class DeepRVFL:
             mae = np.mean(np.abs(output - label))
             return mae
 
-    def get_random_vectors(self, m, n, scale_range):
+    @staticmethod
+    def get_random_vectors(m, n, scale_range):
         x = (scale_range[1] - scale_range[0]) * np.random.random([m, n]) + scale_range[0]
         return x
 
-    def one_hot(self, x, n_class):
+    @staticmethod
+    def one_hot(x, n_class):
         y = np.zeros([len(x), n_class])
         for i in range(len(x)):
             y[i, x[i]] = 1
         return y
 
-    def standardize(self, x, index):
+    def standardize(self, x):
         if self.same_feature is True:
-            if self.data_std[index] is None:
-                self.data_std[index] = np.maximum(np.std(x), 1/np.sqrt(len(x)))
-            if self.data_mean[index] is None:
-                self.data_mean[index] = np.mean(x)
-            return (x - self.data_mean[index]) / self.data_std[index]
+            if self.data_std is None:
+                self.data_std = np.maximum(np.std(x), 1/np.sqrt(len(x)))
+            if self.data_mean is None:
+                self.data_mean = np.mean(x)
+            return (x - self.data_mean) / self.data_std
         else:
-            if self.data_std[index] is None:
-                self.data_std[index] = np.maximum(np.std(x, axis=0), 1/np.sqrt(len(x)))
-            if self.data_mean[index] is None:
-                self.data_mean[index] = np.mean(x, axis=0)
-            return (x - self.data_mean[index]) / self.data_std[index]
+            if self.data_std is None:
+                self.data_std = np.maximum(np.std(x, axis=0), 1/np.sqrt(len(x)))
+            if self.data_mean is None:
+                self.data_mean = np.mean(x, axis=0)
+            return (x - self.data_mean) / self.data_std
 
-    def softmax(self, x):
+    @staticmethod
+    def softmax(x):
         return np.exp(x) / np.repeat((np.sum(np.exp(x), axis=1))[:, np.newaxis], len(x[0]), axis=1)
 
 
 class Activation:
-    def sigmoid(self, x):
+    @staticmethod
+    def sigmoid(x):
         return 1 / (1 + np.e ** (-x))
 
-    def sine(self, x):
+    @staticmethod
+    def sine(x):
         return np.sin(x)
 
-    def hardlim(self, x):
+    @staticmethod
+    def hardlim(x):
         return (np.sign(x) + 1) / 2
 
-    def tribas(self, x):
+    @staticmethod
+    def tribas(x):
         return np.maximum(1 - np.abs(x), 0)
 
-    def radbas(self, x):
+    @staticmethod
+    def radbas(x):
         return np.exp(-(x**2))
 
-    def sign(self, x):
+    @staticmethod
+    def sign(x):
         return np.sign(x)
 
-    def relu(self, x):
+    @staticmethod
+    def relu(x):
         return np.maximum(0, x)
 
 
