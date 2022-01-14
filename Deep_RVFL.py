@@ -132,7 +132,7 @@ class DeepRVFL:
             acc = np.sum(np.equal(result, label)) / len(label)
             return acc
         elif self.task_type == 'regression':
-            mae = np.mean(output - label)
+            mae = np.mean(np.abs(output - label))
             return mae
 
     def get_random_vectors(self, m, n, scale_range):
